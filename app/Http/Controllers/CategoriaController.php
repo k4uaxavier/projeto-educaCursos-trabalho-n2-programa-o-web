@@ -7,49 +7,47 @@ use Illuminate\Http\Request;
 
 class CategoriaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $categorias = Categoria::all();
-        return response()->json($categorias);
+        $categorias = Categoria::latest()->get();
+        return view('admin.categorias.index', compact('categorias'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    public function create()
+    {
+        return view('admin.categorias.create');
+    }
+
     public function store(Request $request)
     {
-        $categoria = Categoria::create($request->all());
-        return response()->json(['message' => 'Categoria criada com sucesso!', 'data' => $categoria], 201);
+        $request->validate(['nome' => 'required|string|max:80|unique:categorias,nome']);
+        Categoria::create($request->only('nome', 'descricao'));
+        return redirect()->route('admin.categorias.index')->with('success', 'Categoria criada com sucesso!');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         $categoria = Categoria::findOrFail($id);
-        return response()->json($categoria);
+        return view('admin.categorias.edit', compact('categoria'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    public function edit(string $id)
+    {
+        $categoria = Categoria::findOrFail($id);
+        return view('admin.categorias.edit', compact('categoria'));
+    }
+
     public function update(Request $request, string $id)
     {
         $categoria = Categoria::findOrFail($id);
-        $categoria->update($request->all());
-        return response()->json(['message' => 'Categoria atualizada com sucesso!', 'data' => $categoria]);
+        $request->validate(['nome' => 'required|string|max:80|unique:categorias,nome,'.$id]);
+        $categoria->update($request->only('nome', 'descricao'));
+        return redirect()->route('admin.categorias.index')->with('success', 'Categoria atualizada!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         Categoria::destroy($id);
-        return response()->json(['message' => 'Categoria deletada com sucesso!']);
+        return redirect()->route('admin.categorias.index')->with('success', 'Categoria removida!');
     }
 }
